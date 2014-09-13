@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Chantiers </title>
+
+    <link 
+        rel="stylesheet" type="css" href="leaflet.css"
+    />
+    <script src="d3.min.js"></script>
+
+    <script src="leaflet.js"></script>
+    <script src="d3tooltip.js"> </script>      
+    <script src="decodechantiers.js"> </script>  
+    <script src="moment.js"> </script>      
+    <link rel="stylesheet" type="css" href="example-styles.css">
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #map {
+            height: 100%;
+        }
+        rect {
+            cursor: default;
+        }
+        #panel {
+            color: DarkSlateGray ;
+            background-color: LightYellow;
+            border-radius: 3px;
+            font-family: "verdana";
+            font-size: "8px";
+        }
+        .tooltip {
+            color: DarkSlateGray ;
+            background-color: LightYellow;
+            border-radius: 3px;
+            font-family: "verdana";
+            font-size: "8px";
+        }
+
+        .leaflet-popup-content-wrapper .leaflet-popup-content,{
+            background-color: LightYellow;
+        }
+
+    </style>
+
+</head>
+<body> 
+
+	<div id="map" ></div>
+    <div id="sliderContain" ></div>
+    <script src="map.js"> </script>   
+    <script src="chantiers.js"></script>
+   
+
+</body>
+</html>
+
