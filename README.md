@@ -1,5 +1,5 @@
-chantiersTlse
-=============
+#chantiersTlse
+---
 
 Visualisation des chantiers à Toulouse.
 Chaque chantier est représenté par un cercle centré sur le point GPS: 
@@ -7,7 +7,7 @@ Chaque chantier est représenté par un cercle centré sur le point GPS:
  * de couleur indiquant l'intensité de la gêne occasionnée
  
 Un clic dans le cercle affiche un pop up avec des infos. (shift clic) pour un affichage de plusieurs pop-up.
-Zoom par double clic, dezoom par shift double clic.
+Zoom par double clic, unzoom par shift double clic.
 
 Quatre modes d'affichage:
   * Global
@@ -15,6 +15,13 @@ Quatre modes d'affichage:
   * en vélo
   * en voiture
 
-Une glissière qui anime le temps en arriere ou en avant (todo).
+Une glissière qui anime le temps en arrière ou en avant (todo).
 
-Pas encore complétement fonctionnel sur tablette et téléphone.
+Pas encore complètement fonctionnel sur tablette et téléphone.
+
+##Utilise
+
+	* d3.js
+	* moment.js
+	* leaflet.js
+	* d3tootip.js
