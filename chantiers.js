@@ -116,8 +116,8 @@ function enterChantiers(ch) {
 					map.latLngToLayerPoint(d.LatLng).x +","+
 					map.latLngToLayerPoint(d.LatLng).y +")";})
 		.on('mouseover',mouseover)
-		.on('mousedown',function (d,i) {mousedown(d,i);})
-		.on('click',	click)
+		.on('mousedown',mousedown)
+		.on('click',	function (d,i) {click(d,i);})
 		.on('mouseup',	mouseup)
 		.on('mouseout',	mouseout);
 	return che;
@@ -211,12 +211,8 @@ function mouseout(d){
 
 }
 
-function mousedown(d, i){
+function mousedown(d){
 	d3.event.stopPropagation();
-	if (!d3.event.shiftKey){removeMark();}
-	var x = pushMark(d, i).openPopup()._popup._contentNode;
-	d3.select(x).on('click.trigger', coucou);
-
 }
 
 function mouseup(d){
@@ -230,12 +226,12 @@ function coucou (){
 	console.log(this.childNodes[0].className);
 }
 
-function click(d){
+function click(d, i){
 	d3.event.stopPropagation();
-//	var am = L.marker(d.LatLng).addTo(map)
-//		.bindPopup(InfoChantier(d));
-//	permanentMark =true;
-			
+	if (!d3.event.shiftKey){removeMark();}
+	var x = pushMark(d, i).openPopup()._popup._contentNode;
+	d3.select(x).on('click.trigger', coucou);
+
 }
 
 function setSlider(bydate) {
