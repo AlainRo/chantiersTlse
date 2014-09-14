@@ -7,7 +7,7 @@ var MoveStart = -1;
 var MoveEnd = -1;
 var permanentMark = true;
 var activeMark = [];
-moment.locale('fr');
+//moment.locale('fr');
 
 //----- Misc utilities 
 
@@ -157,9 +157,13 @@ update();
 }
 
 function InfoChantier(d, i) {
+        var now = new Date().getTime();
+        now = Math.floor(now/86400000) * 86400000;
+        var reste = Math.floor((Date.parse(d.datefin) - now)/86400000);
+        var s = (reste > 1)?"s":"";
 	var rv = "";
 	rv = "<div class='chantiers-" + i + "'>";
-	rv = rv + "<b>Encore " + moment(d.datefin).endOf('week').from(d.date, true) + "</b>";
+	rv = rv + "<b>Encore " + reste + " jour"+s+"</b>";
 	BeautifyVoie(d.voie).forEach(function (e) {
 		rv = rv + '<br />  - ' + e;
 	});
