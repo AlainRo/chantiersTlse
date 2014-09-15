@@ -157,13 +157,9 @@ update();
 }
 
 function InfoChantier(d, i) {
-        var now = new Date().getTime();
-        now = Math.floor(now/86400000) * 86400000;
-        var reste = Math.floor((Date.parse(d.datefin) - now)/86400000);
-        var s = (reste > 1)?"s":"";
 	var rv = "";
 	rv = "<div class='chantiers-" + i + "'>";
-	rv = rv + "<b>Encore " + reste + " jour"+s+"</b>";
+	rv = rv + "<b>Encore " + PrettyDuration(d.duration()) + "</b>";
 	BeautifyVoie(d.voie).forEach(function (e) {
 		rv = rv + '<br />  - ' + e;
 	});

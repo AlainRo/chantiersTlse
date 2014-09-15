@@ -195,6 +195,21 @@ function Categories(s){
 
 
 }
+
+function PrettyDuration(s){
+	var d = 7*s;
+	function plural(e){
+		return (Math.floor(e) > 1)? "s" : "";}
+	if (d<14){
+		return Math.floor(d) + " jour" + plural(d);}
+	if ((d>13) && (d<60)){
+		return Math.floor(d/7) + " semaine" + plural(d/7);}
+	if ((d>59) && (d<366)){
+		return Math.floor(d/30) + " mois";}
+	if (d>365){
+		return Math.floor(d/365) + " an" + plural(d/365);}
+
+}
 /*
 function ChantiersAtDate(d){
 	if (bydate.[d] !== undefined){
