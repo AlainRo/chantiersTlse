@@ -36,12 +36,12 @@ var gene= //Général, Voiture, Piéton, Cycliste
 	['Occupation de couloir de bus',	[3,1,0,1]],
 	['Occupation de la contre allée',	[3,5,1,2]],
 	['Occupation du trottoir',			[2,0,3,1]],
-	['Occupation de la piste cyclable',	[2,1,0,3]],
+	['Occupation de la piste cyclable',	[2,1,1,3]],
 	['Alternat' ,						[2,3,0,2]],
 	['Rue traversée par 1/2 chaussée' , [3,3,0,2]],
 	['Rue sens unique',					[4,4,0,2]],
 	['Rue traverse' ,					[4,3,0,1]],
-	['Rue barrée' ,						[5,5,4,4]],
+	['Rue barrée' ,						[5,5,5,5]],
 	['Sans incidence sur la circulation',[1,0,0,0]]];
 
 
@@ -178,13 +178,30 @@ function scoreGene(n) {
 		var sc = gene[e];
 		if (sc===undefined) console.log(e);
 		score = sc.map(function (x, i) {
-			return score[i]+x;
+
+			return Math.max(score[i],x); //moins dramatique
+//			return score[i]+x;
 		});
 	});
 	n["score"] = score;
 	return score;
 }
 
+/*
+function NormalizeScores(l){
+	var maxgene=[0,0,0,0];
+	for (var i=0; i<4; i++){
+		maxgene[i]=l.reduce(function (p,c){
+			return Math.max(p, c.score[i]);
+		},0);}
+	l.forEach(function (e){e.scoreN=
+		[e.score[0]/maxgene[0]*5,
+		e.score[1]/maxgene[1]*5,
+		e.score[2]/maxgene[2]*5,
+		e.score[3]/maxgene[3]*5];
+	});
+}
+*/
 function Categories(s){
 	var rv = "Inconnu";
 	if (s !== undefined){
@@ -204,9 +221,9 @@ function PrettyDuration(s){
 		return Math.floor(d) + " jour" + plural(d);}
 	if ((d>13) && (d<60)){
 		return Math.floor(d/7) + " semaine" + plural(d/7);}
-	if ((d>59) && (d<366)){
+	if ((d>59) && (d<500)){
 		return Math.floor(d/30) + " mois";}
-	if (d>365){
+	if (d>499){
 		return Math.floor(d/365) + " an" + plural(d/365);}
 
 }

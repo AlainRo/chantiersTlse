@@ -27,6 +27,7 @@ var zoomcorrection =d3.scale.linear()
 	.domain([12, 19])
 	.range([1, 10]);
 
+
 function size() {
 	if (!isMobile()) {return Math.max(0,zoomcorrection(map.getZoom()));}
 		return Math.max(0,2* zoomcorrection(map.getZoom()));
@@ -49,8 +50,34 @@ function Normalize(d) {
 
 var color = d3.scale.ordinal()
 	.domain([1,2,3,4,5])
-	.range(['green', 'green', '#fe9929', '#d95f0e', "red", "black"]);
+//	.range([ 'green', '#fe9929', '#d95f0e', "red", "black"]);
+	.range([ 'green', 'green','#fe9929', '#d95f0e', "red"]);
 
+
+var intensity = d3.scale.ordinal()
+	.domain([0,1,2,3,4,5])
+	.range([0,4,8,12,16,20]);
+
+var duration = d3.scale.linear()
+	.domain([1,4,9,24,52])
+	.clamp(true)
+	.range([0,400]);
+
+function apparentRadius(d){
+	return 0.25 * intensity(d.intensity(modeTransport))*size();
+}
+
+function sizeRadius(d){
+	var int = apparentRadius(d);
+	var sS = sizeStroke(d);
+	return Math.max(int-(sS/2),1);
+}
+function sizeStroke(d){
+	var int = apparentRadius(d);
+	var dur = 5 * duration(d.duration())/(int*int);
+	return Math.max(0.9,Math.min(int,Math.sqrt(dur)*Math.pow(1.6,size())));
+//	return Math.pow(1.5,size());
+}
 
 
 function sizeIcon (d) {
@@ -60,6 +87,8 @@ function sizeIcon (d) {
 	else {rv = Math.sqrt(15*dur);}
 
 	return  (size() * rv);}
+
+
 
 
 var marks = d3.select("#map").select('svg').append('g');
@@ -73,6 +102,7 @@ function updateDate(i){
 
 
 function JoinChantiers() {
+
 	var chantiers = bydate[Today].values.filter(function (e){
 			return (e.intensity(modeTransport)>0);});
 	d3.select('#panel').text( bydate[Today].key.substring(5,10) + '->' + 'nb chantiers: ' + chantiers.length);
@@ -86,7 +116,9 @@ function JoinChantiers() {
 					map.latLngToLayerPoint(d.LatLng).y +")";});
 		
 	ch
-		.attr('r', function (e) {return sizeIcon(e);});
+		.attr('r', function (e) {return sizeRadius(e);})
+		.style('stroke-width', function (e) {return sizeStroke(e);})
+		.style("stroke", function (d) {return color(d.intensity(modeTransport));});
 
 	return ch;
 }
@@ -101,14 +133,12 @@ function RemoveChantiers(ch){
 
 
 function enterChantiers(ch) {
-	var che = ch.enter().append('circle')	//append('path')
-//		.attr('d',arc)
-//		.append('circle')
+	var che = ch.enter().append('circle')
 		.style("stroke", function (d) {return color(d.intensity(modeTransport));})
-//		.style("fill", function (d) {return color(d.intensity(modeTransport));})
 		.style("stroke-opacity", 1e-6)
 		.style('fill-opacity', 0)
-		.style('stroke-width', 2)
+		.attr('r', function (e) {return sizeRadius(e);})
+		.style('stroke-width', function (d) {return sizeStroke(d);})
 		.style('cursor','pointer')
 		.attr("transform",
 			function(d) {
@@ -128,7 +158,8 @@ function addChantiers(ch) {
 	che
 		.transition()
 		.duration(250)
-		.attr('r', function (e) {return sizeIcon(e);})
+		.attr('r', function (e) {return sizeRadius(e);})
+		.style('stroke-width', function (e) {return sizeStroke(e);})
 		.style("stroke-opacity", 0.8)
 		;
 }
@@ -164,6 +195,9 @@ function InfoChantier(d, i) {
 		rv = rv + '<br />  - ' + e;
 	});
 //	rv = rv + "<br />" + d.score;
+//	rv = rv + "<br />" + sizeStroke(d);
+//	rv = rv + "<br />" + sizeRadius(d);
+
 	rv = rv + "<br /><b>Pourquoi: </b>" + d.category;
 	rv = rv + "<br /><br/><b><i> " + d.circulation + "</i></b>";
 
@@ -194,15 +228,18 @@ function removeMark(){
 
 
 function mouseover(d){
-	d3.select(this).style({'stroke-width': 6})
-;
+	var c = d3.select(this);
+//	d3.select(this).style({'stroke-width': 6});
+	c.style('stroke-width', sizeStroke(d) + 6 + 'px');
+
 
 
 }
 
 function mouseout(d){
 //	d3.event.stopPropagation();
-	d3.select(this).style({'stroke-width': 2});
+	d3.select(this).style('stroke-width', function (d) {return sizeStroke(d);});
+//	d3.select(this).style({'stroke-width': 2});
 //	if (!permanentMark) {popMark();}
 
 }
