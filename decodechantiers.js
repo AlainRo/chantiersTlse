@@ -21,11 +21,6 @@ function WeeksToGo(d) {
 	return Normalize(DateDiff(tf,td));
 }
 
-function ToGo() {
-	var td = new Date(this.date);
-	var tf = new Date(this.datefin);
-	return Normalize(DateDiff(tf,td));
-}
 
 //---------------------------------------------------			
 var gene= //Général, Voiture, Piéton, Cycliste
@@ -236,6 +231,42 @@ function ChantiersAtDate(d){
 
 }
 */
+
+function equalChantiers(a, b){
+	//SLOW AND DIRTY
+	var d1 = a.date,
+		d2 = b.date;
+	a.date =""; b.date="";
+	var r1 = JSON.stringify(a),
+		r2 = JSON.stringify(b);
+	a.date = d1; b.date = d2;
+	return (r1===r2);
+}
+
+
+function memberChantiers(l, a){
+	return l.some(function (e) {
+		return equalChantiers(e,a);});
+}
+
+
+function minDates(l) {
+	var cd;
+	return l.reduce(function (p,c){
+		cd = new Date(c);
+		return (DateDiff(p,cd)<0) ? p : cd;
+	},new Date(l[0]));
+}
+
+function maxDates(l) {
+	var cd;
+	return l.reduce(function (p,c){
+		cd = new Date(c);
+		return (DateDiff(p,cd)>0) ? p : cd;
+	},new Date(l[0]));
+}
+
+
 //---------------------------------------------
 function readChantiers(data){
 	data.forEach(function (d){
@@ -247,10 +278,11 @@ function readChantiers(data){
 
 	data.forEach(function (e) {
 
+		e.id = JSON.stringify(e.LatLng);
 		e.intensity = function (m) {
 			return this.score[m];};
 		e.duration = function () {
-			var td = new Date(this.date);
+			var td = ToDay;
 			var tf = new Date(this.datefin);
 			return Normalize(DateDiff(tf,td));};
 		e.hasstarted = function () {
@@ -288,10 +320,50 @@ function readChantiers(data){
 
 	byworkFlat.forEach(scoreGene);
 
+	byKey =d3.nest()
+		.key(function (e) {return e.id;})
+		.entries(byworkFlat);
+
+	byKey.forEach(function (e) {
+		var rv = [e.values[0]];
+		e.values.forEach(function (d) {
+			if (!memberChantiers(rv, d)){
+				rv.push(d);
+			}
+			rv.sort(function asc (a,b){
+				var da = new Date(a.date),
+					db = new Date(b.date);
+				return (DateDiff(da,db));
+			});
+			return rv;});
+		e.values = rv;
+	});
+
+
+console.log(JSON.stringify(byKey));
+
 	bydate =d3.nest()
 		.key(function (e) {return e.date.substring(0,10);})
 		.entries(byworkFlat);
 
-	return bydate;
+	return byKey;
 }
 
+function chantiersAtDate(d) {
+	// Tous les chantiers pour qui: debut <= date <= fin
+	var rv = byKey.filter(function (e) {
+		var c = e.values[0];
+		var	debut = new Date(c.datedebut),
+			fin = new Date(c.datefin);
+		return ((DateDiff(d, debut) >= 0) && (DateDiff(fin, d) >=0));}
+
+	);
+	// S'il y a plusieurs définitions renvoyer celle valide à la date
+	// A plat
+	rv = rv.map(function (e) {
+		return e.values[0]; // PAS FAIT
+	});
+	return rv;
+}
+
+//var ToDay = new Date("2014/08/01");

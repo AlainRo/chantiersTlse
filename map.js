@@ -13,7 +13,14 @@ L.Map = L.Map.extend({
 
 var map = L.map('map').setView([43.600, 1.451], 13); //Toulouse area
 mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>'; //OpenStreetMap copyright
-L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', { //Custo of the map
+L.tileLayer(
+//	'https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', { //Custo of the map
+//    'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+	'http://openmapsurfer.uni-hd.de/tiles/roadsg/x={x}&y={y}&z={z}', {
+//	'http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+
+
+
 	maxZoom: 21,
 	zoomControl: false,
 	attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a>, ' +
