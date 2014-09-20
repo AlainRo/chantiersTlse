@@ -15,7 +15,9 @@ Quatre modes d'affichage:
   * en vélo
   * en voiture
 
-Une glissière qui anime le temps en arrière ou en avant (todo).
+Une glissière qui anime le temps:
+		* en arrière (minimum des dates de débuts)
+		* en avant (plus grande des dates de début + 3 mois)
 
 La sélection simple est possible sur tablette et téléphone.
 
