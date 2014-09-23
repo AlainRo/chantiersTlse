@@ -10,6 +10,10 @@
 //
 
 
+function DateDiff(d1, d2) {
+	return (d1.getTime() - d2.getTime());
+}
+
 function hasstarted (e) {
 			var t = new Date(e.date);
 			var d = new Date(e.datedebut);
@@ -29,11 +33,12 @@ var gene= //Général, Voiture, Piéton, Cycliste
 	['Occupation de 1 file' ,			[3,2,0,2]],
 	['Occupation de 2 files' ,			[3,2,0,2]],
 	['Occupation de couloir de bus',	[3,1,0,1]],
-	['Occupation de la contre allée',	[3,5,1,2]],
-	['Occupation du trottoir',			[2,0,3,1]],
+	['Occupation de la contre allée',	[3,5,1,1]],
+	['Occupation du trottoir',			[2,0,3,0]],
 	['Occupation de la piste cyclable',	[2,1,1,3]],
 	['Alternat' ,						[2,3,0,2]],
 	['Rue traversée par 1/2 chaussée' , [3,3,0,2]],
+	['Rue traversée par 1/3 chaussée' , [3,3,0,2]],
 	['Rue sens unique',					[4,4,0,2]],
 	['Rue traverse' ,					[4,3,0,1]],
 	['Rue barrée' ,						[5,5,5,5]],
@@ -222,15 +227,7 @@ function PrettyDuration(s){
 		return Math.floor(d/365) + " an" + plural(d/365);}
 
 }
-/*
-function ChantiersAtDate(d){
-	if (bydate.[d] !== undefined){
-		return bydate[d]
-		}
-	else 
 
-}
-*/
 
 function equalChantiers(a, b){
 	//SLOW AND DIRTY
@@ -269,16 +266,17 @@ function maxDates(l) {
 
 //---------------------------------------------
 function readChantiers(data){
-	data.forEach(function (d){
-		d.LatLng= new L.LatLng(d.Y_WGS84,
-								d.X_WGS84);});
+
 	data.forEach(function (d) {
 		d.datedebut= d.datedebut.substring(0,4) + "-" + d.datedebut.substring(4,6) + "-" + d.datedebut.substring(6,8);
 		d.datefin= d.datefin.substring(0,4) + "-" + d.datefin.substring(4,6) + "-" + d.datefin.substring(6,8);});
-
+	
+	var tmpdate, tmpvoie, tmppole, ekey;
 	data.forEach(function (e) {
-
-		e.id = JSON.stringify(e.LatLng);
+		tmpdate = e.date; // remove date of data to create key
+		e.date="";
+		e.id = "";//JSON.stringify(e); // new definition THE ULTIMATE
+		e.date=tmpdate;
 		e.intensity = function (m) {
 			return this.score[m];};
 		e.duration = function () {
@@ -292,11 +290,53 @@ function readChantiers(data){
 		e.category = Categories(e.nature);
 	});
 
-	var bywork = d3.nest() // By chantier
-		.key(function (e) {return e.id;})
-		.key(function (e) {return e.date;})
-		.sortKeys(d3.ascending)
-		.entries(data.filter(function (e) {return (e.duration()  >0);}));
+	data.forEach(function (d){
+		d.LatLng= new L.LatLng(d.Y_WGS84,
+								d.X_WGS84);});
+	console.log('Lignes Totales: ' + data.length);
+//fusion exact duplicates while keeping list of data dates
+	bywork = d3.map();
+	data.forEach(function (e){
+		tmpdate = e.date;
+		e.date="";
+		ekey = JSON.stringify(e); // new definition THE ULTIMATE
+		e.date=tmpdate;
+		evalue =bywork.get(ekey);
+		if (evalue){
+			evalue.date.push(tmpdate);
+		}
+		else {
+			evalue=e;
+			evalue.date=[tmpdate];
+			bywork.set(ekey,evalue);
+		}
+	});
+
+	console.log('Lignes uniques: ' + bywork.values().length);
+
+	byworkFlat = d3.map();
+	bywork.values().forEach(function (e){
+		tmpdate = e.date;
+		tmpvoie = e.voie;
+		tmppole = e.pole;
+		e.date=""; e.voie="";e.pole="";
+		ekey = JSON.stringify(e);
+		evalue = byworkFlat.get(ekey);
+		if (evalue){
+			evalue.voie.push(tmpvoie);}
+		else {
+			evalue = e;
+			evalue.voie = [tmpvoie];
+			evalue.date=tmpdate;
+			evalue.pole=tmppole;
+			evalue.id=ekey;
+			byworkFlat.set(ekey,evalue);
+		}
+
+	});
+	console.log('Chantiers uniques: ' + byworkFlat.values().length);
+
+/*
 // Group the 'voies' into one array
 	byworkFlat = Flat(bywork);
 	function Flat(arr) {
@@ -317,12 +357,12 @@ function readChantiers(data){
 	});
 		return FlatArr;
 }
-
-	byworkFlat.forEach(scoreGene);
-
+*/
+	byworkFlat.values().forEach(scoreGene);
+/*
 	byKey =d3.nest()
 		.key(function (e) {return e.id;})
-		.entries(byworkFlat);
+		.entries(byworkFlat.values());
 
 	byKey.forEach(function (e) {
 		var rv = [e.values[0]];
@@ -338,32 +378,43 @@ function readChantiers(data){
 			return rv;});
 		e.values = rv;
 	});
-
+*/
+	byKey =byworkFlat.values();
 
 console.log(JSON.stringify(byKey));
 
-	bydate =d3.nest()
-		.key(function (e) {return e.date.substring(0,10);})
-		.entries(byworkFlat);
-
 	return byKey;
+
 }
 
 function chantiersAtDate(d) {
 	// Tous les chantiers pour qui: debut <= date <= fin
-	var rv = byKey.filter(function (e) {
-		var c = e.values[0];
-		var	debut = new Date(c.datedebut),
-			fin = new Date(c.datefin);
+	var debut, fin;
+	var rv = byKey.filter(function (c) {
+		debut = new Date(c.datedebut);
+		fin = new Date(c.datefin);
 		return ((DateDiff(d, debut) >= 0) && (DateDiff(fin, d) >=0));}
 
 	);
-	// S'il y a plusieurs définitions renvoyer celle valide à la date
-	// A plat
-	rv = rv.map(function (e) {
-		return e.values[0]; // PAS FAIT
+
+	return rv;
+}
+
+function isWeird(){
+	var rv =[];
+	var md;
+	byKey.forEach(function (e) {
+		md = maxDates(e.date);
+		if (DateDiff(md,new Date(e.datefin))>2000*24*60*60) {
+			rv.push([md, e.datefin, e]);
+		}
 	});
 	return rv;
 }
 
-//var ToDay = new Date("2014/08/01");
+function isWeird1(){
+	var rv =[];
+	rv = byKey.filter(function (e) {return (e.date.length === 1);
+		});
+	return rv;
+}

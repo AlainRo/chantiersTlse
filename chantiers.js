@@ -18,13 +18,11 @@ function isMobile () {
 
 
 var ToDay = new Date(Date.now());
-var mindate, // Initialize in SetSlider
+var mindate, // Initialized in SetSlider
 	maxdate;
 
 
-function DateDiff(d1, d2) {
-	return (d1.getTime() - d2.getTime());
-}
+
 
 var zoomcorrection =d3.scale.linear()
 	.domain([12, 19])
@@ -195,10 +193,35 @@ modeTransport = modeType[v];
 update();
 }
 
+function InfoIcons(d){
+	var rv = "";
+	rv = rv + "<table class='gene'>";
+	
+	rv = rv + "<tr><td><object data='images/car.svg' type='image/svg+xml'></object></td>";
+	rv = rv + "<td><svg height='10px' width= '30px'><rect width='" +  6 * d.score[1] + "px'";
+	rv = rv + "height = '4px' y = '2px' style ='fill:";
+	rv = rv + color(d.score[1]) + "'></rect></svg></td>";
+
+	rv = rv + "<td><object data='images/pedestrian.svg' type='image/svg+xml'></object></td>";
+	rv = rv + "<td><svg height='10px' width= '30px'><rect width='" +  6 * d.score[2] + "px'";
+	rv = rv + "height = '4px' y = '2px' style ='fill:";
+	rv = rv + color(d.score[2]) + "'></rect></svg></td>";
+
+	rv = rv + "<td><object data='images/bike.svg' type='image/svg+xml'></object></td>";
+	rv = rv + "<td><svg height='10px' width= '30px'><rect width='" +  6 * d.score[3] + "px'";
+	rv = rv + "height = '4px' y = '2px' style ='fill:";
+	rv = rv + color(d.score[3]) + "'></rect></svg></td></tr>";
+
+	rv = rv + "</table>";
+	return rv;
+}
+
 function InfoChantier(d, i) {
 	var rv = "";
-	rv = "<div class='chantiers-" + i + "'>";
-	rv = rv + "<b>Encore " + PrettyDuration(d.duration()) + "</b>";
+	rv = "<div id='chantiers-" + i + "'>";
+	rv = rv + "<b>Encore " + PrettyDuration(d.duration()) + "</b>"; //</br>";
+
+//	rv = rv + "<b>A quel endroit: </b>" ;
 	BeautifyVoie(d.voie).forEach(function (e) {
 		rv = rv + '<br />  - ' + e;
 	});
@@ -208,6 +231,7 @@ function InfoChantier(d, i) {
 
 	rv = rv + "<br /><b>Pourquoi: </b>" + d.category;
 	rv = rv + "<br /><br/><b><i> " + d.circulation + "</i></b>";
+	rv = rv + InfoIcons(d) ;
 
 	rv = rv + "</div>";
 	return rv;
@@ -276,12 +300,17 @@ function click(d, i){
 }
 
 function setSlider(bydate) {
+// Only 3 months before the first available data
+//	mindate = minDates(byKey.map(function (e){
+//		return e.values[0].datedebut;}));
 	mindate = minDates(byKey.map(function (e){
-		return e.values[0].datedebut;}));
+		return minDates(e.date);}));
+	mindate.setTime(mindate.getTime()-3*30*24*60*60*1000); // - 3 mois
 
-// Only 3 months after the last starting
+
+// Only 3 months after the latest starting date
 	maxdate = maxDates(byKey.map(function (e){
-		return e.values[0].datedebut;}));
+		return e.datedebut;}));
 	maxdate.setTime(maxdate.getTime()+3*30*24*60*60*1000); // + 3 mois
 
 	var amplitude = DateDiff(maxdate, mindate)/(60*60*24*1000);//nb of days
@@ -312,9 +341,11 @@ function setSlider(bydate) {
 }
 
 d3.json("all.json", function (chantiers){
+//		throw { name: 'FatalError', message: 'Something went badly wrong' };
+
 	readChantiers(chantiers);
 
-	setSlider(bydate);
+	setSlider(byKey);
 
 	update();
 
