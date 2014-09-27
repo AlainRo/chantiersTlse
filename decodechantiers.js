@@ -26,48 +26,27 @@ function WeeksToGo(d) {
 }
 
 
+
+
 //---------------------------------------------------			
 var gene= //Général, Voiture, Piéton, Cycliste
 //---------------------------------------------------	
-[	['Gêne de la circulation',			[2,1,0,1]],
-	['Occupation de 1 file' ,			[3,2,0,2]],
-	['Occupation de 2 files' ,			[3,2,0,2]],
-	['Occupation de couloir de bus',	[3,1,0,1]],
-	['Occupation de la contre allée',	[3,5,1,1]],
-	['Occupation du trottoir',			[2,0,3,0]],
-	['Occupation de la piste cyclable',	[2,1,1,3]],
-	['Alternat' ,						[2,3,0,2]],
-	['Rue traversée par 1/2 chaussée' , [3,3,0,2]],
-	['Rue traversée par 1/3 chaussée' , [3,3,0,2]],
-	['Rue sens unique',					[4,4,0,2]],
-	['Rue traverse' ,					[4,3,0,1]],
-	['Rue barrée' ,						[5,5,5,5]],
-	['Sans incidence sur la circulation',[1,0,0,0]]];
+{
+'Gêne de la circulation'			:[2,1,0,1],
+'Occupation de 1 file'				:[3,2,0,2],
+'Occupation de 2 files'				:[3,2,0,2],
+'Occupation de couloir de bus'		:[3,1,0,1],
+'Occupation de la contre allée'		:[3,5,1,1],
+'Occupation du trottoir'			:[2,0,3,0],
+'Occupation de la piste cyclable'	:[2,1,1,3],
+'Alternat'							:[2,3,0,2],
+'Rue traversée par 1/2 chaussée'	:[3,3,0,2],
+'Rue traversée par 1/3 chaussée'	:[3,3,0,2],
+'Rue sens unique'					:[4,4,0,2],
+'Rue traverse'						:[4,3,0,1],
+'Rue barrée'						:[5,5,5,5],
+'Sans incidence sur la circulation'	:[1,0,0,0]};
 
-
-
-gene= UTFpatch(gene);
-
-
-function escapeRegExp(string) {
-	return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
-}
-
-function UTFpatch (arr) {
-	var rv = {};
-	arr.forEach(function (e) {
-		rv[decode_utf8(e[0])]= e[1];
-	});
-	return rv;
-}
-
-function encode_utf8(s) {
-  return unescape(encodeURIComponent(s));
-}
-
-function decode_utf8(s) {
-  return decodeURIComponent(escape(s));
-}
 
 function text2criteria (s) {
 	var patt = new RegExp("[a-z] -","ig"),

@@ -25,7 +25,6 @@ L.tileLayer(
 	zoomControl: false,
 	attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a>, ' +
 				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-				'<a href="http://mapbox.com">Mapbox</a>, ' +
 				'<a href="http://perceptible.fr">perceptible.fr</a>',
 	id: 'examples.map-i86knfo3'
 }).addTo(map);
