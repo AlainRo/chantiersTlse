@@ -106,8 +106,9 @@ function substWords(s) {
 		'Imp' : 'impasse',
 		'D' : "d'",
 		'L' : "l'",
+		'Pl': "place",
 		'Rte' : 'route',
-		'All': decode_utf8('allée'),
+		'All': 'allée',
 		'Che': 'chemin'};
 	var sb = s.split(" ").map(function (e){
 		var sub = word[e];
@@ -146,7 +147,7 @@ function BeautifyVoie(s) {
 			rv = rv.concat(unique(e.split("|")));});
 	else
 		rv = unique(s.split("|"));
-	rv = rv.map(tidyEverything);
+	rv = unique(rv).map(tidyEverything);
 	return rv;
 }
 
@@ -250,7 +251,7 @@ function readChantiers(data){
 		d.datedebut= d.datedebut.substring(0,4) + "-" + d.datedebut.substring(4,6) + "-" + d.datedebut.substring(6,8);
 		d.datefin= d.datefin.substring(0,4) + "-" + d.datefin.substring(4,6) + "-" + d.datefin.substring(6,8);});
 	
-	var tmpdate, tmpvoie, tmppole, ekey;
+	var tmpdate, tmpvoie, tmppole, ekey, tmpcircu;
 	data.forEach(function (e) {
 		tmpdate = e.date; // remove date of data to create key
 		e.date="";
@@ -298,7 +299,8 @@ function readChantiers(data){
 		tmpdate = e.date;
 		tmpvoie = e.voie;
 		tmppole = e.pole;
-		e.date=""; e.voie="";e.pole="";
+		tmpcircu =e.circulation;
+		e.date=""; e.voie="";e.pole=""; e.circulation ="";
 		ekey = JSON.stringify(e);
 		evalue = byworkFlat.get(ekey);
 		if (evalue){
@@ -309,6 +311,7 @@ function readChantiers(data){
 			evalue.date=tmpdate;
 			evalue.pole=tmppole;
 			evalue.id=ekey;
+			evalue.circulation= tmpcircu;
 			byworkFlat.set(ekey,evalue);
 		}
 
@@ -393,7 +396,9 @@ function isWeird(){
 
 function isWeird1(){
 	var rv =[];
-	rv = byKey.filter(function (e) {return (e.date.length === 1);
+	rv = byKey.filter(function (e) {return (e.date.length < 2) && 
+		(e.date[0].substring(0,10) !== "2014-09-29" )
+		&& (e.datedebut !== e.datefin)
 		});
 	return rv;
 }

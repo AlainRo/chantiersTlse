@@ -197,17 +197,17 @@ function InfoIcons(d){
 	var rv = "";
 	rv = rv + "<table class='gene'>";
 	
-	rv = rv + "<tr><td><object data='images/car.svg' type='image/svg+xml'></object></td>";
+	rv = rv + "<tr><td><img src= 'images/car.png'></td></td>";
 	rv = rv + "<td><svg height='10px' width= '30px'><rect width='" +  6 * d.score[1] + "px'";
 	rv = rv + "height = '4px' y = '2px' style ='fill:";
 	rv = rv + color(d.score[1]) + "'></rect></svg></td>";
 
-	rv = rv + "<td><object data='images/pedestrian.svg' type='image/svg+xml'></object></td>";
+	rv = rv + "<td><img src= 'images/pedestrian.png'></td>";
 	rv = rv + "<td><svg height='10px' width= '30px'><rect width='" +  6 * d.score[2] + "px'";
 	rv = rv + "height = '4px' y = '2px' style ='fill:";
 	rv = rv + color(d.score[2]) + "'></rect></svg></td>";
 
-	rv = rv + "<td><object data='images/bike.svg' type='image/svg+xml'></object></td>";
+	rv = rv + "<td><img src= 'images/bike.png'></td>";
 	rv = rv + "<td><svg height='10px' width= '30px'><rect width='" +  6 * d.score[3] + "px'";
 	rv = rv + "height = '4px' y = '2px' style ='fill:";
 	rv = rv + color(d.score[3]) + "'></rect></svg></td></tr>";
