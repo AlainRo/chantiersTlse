@@ -28,6 +28,29 @@ L.tileLayer(
 				'<a href="http://perceptible.fr">perceptible.fr</a>',
 	id: 'examples.map-i86knfo3'
 }).addTo(map);
+
+//LAYER CONTROL 
+
+
+L.control.layers(null, null, {collapsed: false}).addTo(map);
+
+// LEGEND
+var legend = L.control({position: 'bottomright'});
+
+legend.onAdd = function (map) {
+var div = L.DomUtil.create('div', 'info legend');
+
+    div.innerHTML +=
+    '<img src="images/legend.png" alt="legend" width="251" height="156">';
+
+return div;
+};
+
+legend.addTo(map);
+
+
+
+
 map._layersMaxZoom=21;
 map._layersMinZoom=12;
 map.scrollWheelZoom.disable();
