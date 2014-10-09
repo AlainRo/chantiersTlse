@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="550px" height="73px" viewBox="0 0 550 73" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.1 (8751) - http://www.bohemiancoding.com/sketch -->
+    <title>logoperceptible</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="logoperceptible" sketch:type="MSLayerGroup">
+            <g id="layer1">
+                <g id="g3442">
+                    <g id="logo" fill="#E92C00" sketch:type="MSShapeGroup">
+                        <g>
+                            <rect id="rect3249" x="4" y="43.9759036" width="10" height="28.1445783"></rect>
+                            <rect id="rect3251" x="15" y="55.4096386" width="10" height="16.7108434"></rect>
+                            <rect id="rect3253" x="26" y="62.4457831" width="10" height="9.6746988"></rect>
+                            <rect id="rect3255" x="37" y="24.626506" width="10" height="47.4939759"></rect>
+                            <rect id="rect3257" x="48" y="45.7349398" width="10" height="26.3855422"></rect>
+                            <rect id="rect3259" x="59" y="28.1445783" width="10" height="43.9759036"></rect>
+                            <rect id="rect3261" x="70" y="0" width="10" height="72.1204819"></rect>
+                            <rect id="rect3263" x="0" y="71.2409639" width="84" height="1.75903614"></rect>
+                        </g>
+                    </g>
+                    <text id="percepible" fill="#070606" sketch:type="MSTextLayer" font-family="Verdana" font-size="60" font-weight="bold">
+                        <tspan x="95" y="60" fill="#FFFFFF">perceptible.fr</tspan>
+                    </text>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

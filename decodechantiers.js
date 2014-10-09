@@ -10,9 +10,20 @@
 //
 
 
+
 function DateDiff(d1, d2) {
 	return (d1.getTime() - d2.getTime());
 }
+
+
+function Normalize(d) {
+	//Nombre de jours
+	var rv = d/(60*60*24*1000);
+	if (rv < 0) {return -1;}
+	return rv;
+}
+
+
 
 function hasstarted (e) {
 			var t = new Date(e.date);
@@ -36,7 +47,7 @@ var gene= //Général, Voiture, Piéton, Cycliste
 'Occupation de 1 file'				:[3,2,0,2],
 'Occupation de 2 files'				:[3,2,0,2],
 'Occupation de couloir de bus'		:[3,1,0,1],
-'Occupation de la contre allée'		:[3,5,1,1],
+'Occupation de la contre allée'		:[3,2,1,1],
 'Occupation du trottoir'			:[2,0,3,0],
 'Occupation de la piste cyclable'	:[2,1,1,3],
 'Alternat'							:[2,3,0,2],
@@ -104,9 +115,11 @@ function substWords(s) {
 		'Du': 'du',
 		'Rue': 'rue',
 		'Imp' : 'impasse',
+		'Chem': 'chemin',
 		'D' : "d'",
 		'L' : "l'",
 		'Pl': "place",
+		'Bd': "bd",
 		'Rte' : 'route',
 		'All': 'allée',
 		'Che': 'chemin'};
@@ -186,6 +199,7 @@ function Categories(s){
 	var rv = "Inconnu";
 	if (s !== undefined){
 		var cat = s.split(",");
+//		cat = cat[0].split("-");
 		rv = cat[0];}
 	if (rv === 'SLT') {rv = 'Feux tricolores';}
 	return rv;
@@ -193,18 +207,17 @@ function Categories(s){
 
 }
 
-function PrettyDuration(s){
-	var d = 7*s;
+function PrettyDuration(d){
 	function plural(e){
 		return (Math.floor(e) > 1)? "s" : "";}
 	if (d<14){
-		return Math.floor(d) + " jour" + plural(d);}
+		return Math.floor(d+0.5) + " jour" + plural(d+0.5);}
 	if ((d>13) && (d<60)){
-		return Math.floor(d/7) + " semaine" + plural(d/7);}
+		return Math.floor((d+5)/7) + " semaine" + plural((d+5)/7);}
 	if ((d>59) && (d<500)){
-		return Math.floor(d/30) + " mois";}
+		return Math.floor((d+15)/30) + " mois";}
 	if (d>499){
-		return Math.floor(d/365) + " an" + plural(d/365);}
+		return Math.floor((d+100)/365) + " an" + plural((d+100)/365);}
 
 }
 
@@ -243,20 +256,72 @@ function maxDates(l) {
 	},new Date(l[0]));
 }
 
+function HashString(m, s){
+	var rv = m.get(s);
+	var i = 'c' + m.size();
+	if (rv !== undefined)
+		{return rv;}
+	m.set(s,i);
+	return i;
+}
+
+function cloneObject(o) {
+	var rv = {};
+	d3.entries(o).forEach(function (e){
+		rv[e.key]=e.value;
+	});
+	return rv;
+}
+
+function groupBy(d, key){
+	var idKey = d3.map();
+	var rv = d3.map();
+	var e;
+	var evalue,tmpcircu, tmp, ekey;
+	d.forEach(function (o){
+		e = cloneObject(o);
+
+		tmp = e[key];tmpcircu =e.circulation;
+		e[key]="";e.circulation ="";
+//		ekey = HashString(idKey,JSON.stringify(e));
+		ekey = JSON.stringify(e);
+		e[key]=tmp;	e.circulation= tmpcircu;
+
+		evalue =rv.get(ekey);
+		if (evalue){
+			evalue['groupBy' + key].push(e[key]);
+			}
+		else {
+			e['groupBy' + key]=[e[key]];
+			rv.set(ekey,e);
+		}
+	});
+	return rv;
+}
 
 //---------------------------------------------
 function readChantiers(data){
 
-	data.forEach(function (d) {
-		d.datedebut= d.datedebut.substring(0,4) + "-" + d.datedebut.substring(4,6) + "-" + d.datedebut.substring(6,8);
-		d.datefin= d.datefin.substring(0,4) + "-" + d.datefin.substring(4,6) + "-" + d.datefin.substring(6,8);});
-	
-	var tmpdate, tmpvoie, tmppole, ekey, tmpcircu;
 	data.forEach(function (e) {
-		tmpdate = e.date; // remove date of data to create key
-		e.date="";
-		e.id = "";//JSON.stringify(e); // new definition THE ULTIMATE
-		e.date=tmpdate;
+		e.LatLng= new L.LatLng(e.Y_WGS84,
+								e.X_WGS84);
+		e.datedebut= e.datedebut.substring(0,4) + "-" + e.datedebut.substring(4,6) + "-" + e.datedebut.substring(6,8);
+		e.datefin= e.datefin.substring(0,4) + "-" + e.datefin.substring(4,6) + "-" + e.datefin.substring(6,8);
+		delete e.Y_WGS84;
+		delete e.X_WGS84;
+		delete e.duree;
+		delete e.id;
+	});
+
+	console.log('Lignes Totales: ' + data.length);
+	var gvoie = groupBy(data,"voie");
+	console.log('Lignes par voies: ' + gvoie.size());
+	var gdate = groupBy(gvoie.values(),"date");
+	console.log('Lignes par dates: ' + gdate.size());
+
+	byKey =gdate.values();
+	var i =0;
+	byKey.forEach(function (e) {
 		e.intensity = function (m) {
 			return this.score[m];};
 		e.duration = function () {
@@ -268,102 +333,11 @@ function readChantiers(data){
 			var d = new Date(this.datedebut);
 			return (DateDiff(t,d) > 0);};
 		e.category = Categories(e.nature);
+		scoreGene(e);
+		e.date= e.groupBydate;
+		e.voie= e.groupByvoie;
+		e.id = i++;
 	});
-
-	data.forEach(function (d){
-		d.LatLng= new L.LatLng(d.Y_WGS84,
-								d.X_WGS84);});
-	console.log('Lignes Totales: ' + data.length);
-//fusion exact duplicates while keeping list of data dates
-	bywork = d3.map();
-	data.forEach(function (e){
-		tmpdate = e.date;
-		e.date="";
-		ekey = JSON.stringify(e); // new definition THE ULTIMATE
-		e.date=tmpdate;
-		evalue =bywork.get(ekey);
-		if (evalue){
-			evalue.date.push(tmpdate);
-		}
-		else {
-			evalue=e;
-			evalue.date=[tmpdate];
-			bywork.set(ekey,evalue);
-		}
-	});
-
-	console.log('Lignes uniques: ' + bywork.values().length);
-
-	byworkFlat = d3.map();
-	bywork.values().forEach(function (e){
-		tmpdate = e.date;
-		tmpvoie = e.voie;
-		tmppole = e.pole;
-		tmpcircu =e.circulation;
-		e.date=""; e.voie="";e.pole=""; e.circulation ="";
-		ekey = JSON.stringify(e);
-		evalue = byworkFlat.get(ekey);
-		if (evalue){
-			evalue.voie.push(tmpvoie);}
-		else {
-			evalue = e;
-			evalue.voie = [tmpvoie];
-			evalue.date=tmpdate;
-			evalue.pole=tmppole;
-			evalue.id=ekey;
-			evalue.circulation= tmpcircu;
-			byworkFlat.set(ekey,evalue);
-		}
-
-	});
-	console.log('Chantiers uniques: ' + byworkFlat.values().length);
-
-/*
-// Group the 'voies' into one array
-	byworkFlat = Flat(bywork);
-	function Flat(arr) {
-		var FlatArr = [];
-		arr.forEach(function (n) { //each node
-			n.values.forEach(function (v){ //each date
-				if (v.values.length > 1) { // if more than 1 object
-					rv = [];
-					v.values.forEach(function (e) {
-						rv.push(e.voie);
-					});
-					v.values[0].voie=rv;
-					v.values=[v.values[0]];
-				}
-				FlatArr.push(v.values[0]);
-			});
-
-	});
-		return FlatArr;
-}
-*/
-	byworkFlat.values().forEach(scoreGene);
-/*
-	byKey =d3.nest()
-		.key(function (e) {return e.id;})
-		.entries(byworkFlat.values());
-
-	byKey.forEach(function (e) {
-		var rv = [e.values[0]];
-		e.values.forEach(function (d) {
-			if (!memberChantiers(rv, d)){
-				rv.push(d);
-			}
-			rv.sort(function asc (a,b){
-				var da = new Date(a.date),
-					db = new Date(b.date);
-				return (DateDiff(da,db));
-			});
-			return rv;});
-		e.values = rv;
-	});
-*/
-	byKey =byworkFlat.values();
-
-console.log(JSON.stringify(byKey));
 
 	return byKey;
 

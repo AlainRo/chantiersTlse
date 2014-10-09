@@ -37,15 +37,6 @@ function size() {
 
 
 
-function Normalize(d) {
-	//Nombre de semaine
-	var rv = d/(60*60*24*7*1000);
-	if (rv < 0) {rv = -1;}
-	else if (rv < 1) {rv = 1;}
-	return rv;
-}
-
-
 
 // - 
 
@@ -65,9 +56,9 @@ var intensity = d3.scale.ordinal()
 	.range([0,4,8,12,16,20]);
 
 var duration = d3.scale.linear()
-	.domain([1,4,9,24,52])
+	.domain([1,30,60,90]) // 3 months is the highest visible
 	.clamp(true)
-	.range([0,400]);
+	.range([0,0.4,0.6,1]);
 
 function apparentRadius(d){
 	return 0.25 * intensity(d.intensity(modeTransport))*size();
@@ -75,17 +66,26 @@ function apparentRadius(d){
 
 function sizeRadius(d){
 	var int = apparentRadius(d);
-	var sS = sizeStroke(d);
-	return Math.max(int-(sS/2),1);
+	return int*(1-percentStroke(d)/2);
 }
+
+function percentStroke(d){
+	//0 = just border
+	//1 = full moon
+	var alp = duration(d.duration());
+	return alp;
+
+
+}
+
 function sizeStroke(d){
-	var int = apparentRadius(d);
-	var dur = 5 * duration(d.duration())/(int*int);
-	return Math.max(0.9,Math.min(int,Math.sqrt(dur)*Math.pow(1.6,size())));
-//	return Math.pow(1.5,size());
+	var s = percentStroke(d) * apparentRadius(d);
+	if (intensity(d.intensity(modeTransport)) > 19)
+		{return Math.max(1, s);}
+	{return Math.max(2, s);}
 }
 
-
+/*
 function sizeIcon (d) {
 	var dur = d.duration();
 	if (dur<15){
@@ -93,7 +93,7 @@ function sizeIcon (d) {
 	else {rv = Math.sqrt(15*dur);}
 
 	return  (size() * rv);}
-
+*/
 
 
 
@@ -101,6 +101,7 @@ var marks = d3.select("#map").select('svg').append('g');
 
 function updateDate(i){
 	ToDay.setTime(mindate.getTime() + i*24*60*60*1000);
+	removeMark();
 	update();
 
 }
@@ -143,6 +144,7 @@ function enterChantiers(ch) {
 		.style("stroke", function (d) {return color(d.intensity(modeTransport));})
 		.style("stroke-opacity", 1e-6)
 		.style('fill-opacity', 0)
+		.attr('id', function (d) {return d.id;})
 		.attr('r', function (e) {return sizeRadius(e);})
 		.style('stroke-width', function (d) {return sizeStroke(d);})
 		.style('cursor','pointer')
@@ -151,7 +153,8 @@ function enterChantiers(ch) {
 				return "translate("+
 					map.latLngToLayerPoint(d.LatLng).x +","+
 					map.latLngToLayerPoint(d.LatLng).y +")";})
-		.on('mouseover',mouseover)
+
+		.on('mouseover', mouseover)
 		.on('mousedown',mousedown)
 		.on('click',	function (d,i) {click(d,i);})
 		.on('mouseup',	mouseup)
@@ -228,6 +231,10 @@ function InfoChantier(d, i) {
 //	rv = rv + "<br />" + d.score;
 //	rv = rv + "<br />" + sizeStroke(d);
 //	rv = rv + "<br />" + sizeRadius(d);
+//	rv = rv + "<br />" + percentStroke(d);
+//	rv = rv + "<br /> id: " + d.id;
+//	rv = rv + "<br />" + d.datedebut;
+//	rv = rv + "<br />" + d.datefin;
 
 	rv = rv + "<br /><b>Pourquoi: </b>" + d.category;
 	rv = rv + "<br /><br/><b><i> " + d.circulation + "</i></b>";
@@ -324,10 +331,10 @@ function setSlider(bydate) {
 		.attr("type", 'range')
 		.attr('id', 'slider')
 		.style('width', '500px')
-		.attr('value', DateDiff(ToDay,mindate)/(60*60*24*1000))
+		.attr('value', Math.floor(DateDiff(ToDay,mindate)/(60*60*24*1000)))
 		.attr("class", 'slider')
 		.attr('min', 0)
-		.attr('max', amplitude)
+		.attr('max', Math.floor(amplitude))
 		.attr('step', 1)
 		.attr('onchange', function (d) {return "updateDate(+this.value)";})
 		.attr('oninput', function (d) {return "updateDate(+this.value)";});
@@ -339,7 +346,27 @@ function setSlider(bydate) {
 
 	map.on("viewreset", update);
 }
+/*
+d3.json("compress.json", function (chantiers){
+//		throw { name: 'FatalError', message: 'Something went badly wrong' };
 
+	//readChantiers(chantiers);
+
+	byKey = chantiers;
+	byKey.forEach(function (e) {
+		e.intensity = function (m) {return this.score[m];};
+		e.duration = function () {
+			var td = ToDay;
+			var tf = new Date(this.datefin);
+			return Normalize(DateDiff(tf,td));};
+		});
+	setSlider(byKey);
+
+	update();
+
+
+});
+*/
 d3.json("all.json", function (chantiers){
 //		throw { name: 'FatalError', message: 'Something went badly wrong' };
 
