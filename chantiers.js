@@ -18,10 +18,13 @@ function isMobile () {
 
 
 var ToDay = new Date(Date.now());
+ToDay.setHours(0);
+ToDay.setMinutes(0);
+ToDay.setSeconds(0);
 var mindate, // Initialized in SetSlider
 	maxdate;
 
-
+//d3.select('.watermark').select('text').html(FrenchDate(ToDay));
 
 
 var zoomcorrection =d3.scale.linear()
@@ -85,26 +88,12 @@ function sizeStroke(d){
 	{return Math.max(2, s);}
 }
 
-/*
-function sizeIcon (d) {
-	var dur = d.duration();
-	if (dur<15){
-		rv= Math.max(dur,1.5);}
-	else {rv = Math.sqrt(15*dur);}
-
-	return  (size() * rv);}
-*/
 
 
 
 var marks = d3.select("#map").select('svg').append('g');
 
-function updateDate(i){
-	ToDay.setTime(mindate.getTime() + i*24*60*60*1000);
-	removeMark();
-	update();
 
-}
 
 
 
@@ -174,8 +163,37 @@ function addChantiers(ch) {
 }
 
 
+function updateDate(i){
+	ToDay.setTime(mindate.getTime() + i*24*60*60*1000);
+	removeMark();
+
+	d3.select('.watermark').select('text')
+		.text(FrenchDate(ToDay))
+		.style('opacity', '0.2')
+		.transition()
+		.duration(2000)
+		.style('opacity', '1e-6')
+		.each('end', function (){watermark.removeFrom(map);});
 
 
+		
+	update();
+
+}
+function updateDate1(i){
+	if (d3.select('.watermark').empty()) {
+		watermark.addTo(map);
+	}
+	ToDay.setTime(mindate.getTime() + i*24*60*60*1000);
+	removeMark();
+	d3.select('.watermark').select('text')
+		.text(FrenchDate(ToDay))
+		.style('opacity', '0.2');
+
+
+	update();
+
+}
 function update() {
 
 	var ch = JoinChantiers();
@@ -191,10 +209,15 @@ function update() {
 
 
 function updateDropdown(v){
-modeTransport = modeType[v];
-
-update();
+	modeTransport = modeType[v];
+	update();
 }
+
+function setMode(i){
+	modeTransport=i;
+	update();
+}
+
 
 function InfoIcons(d){
 	var rv = "";
@@ -265,10 +288,22 @@ function removeMark(){
 	activeMark=[];
 }
 
+var popup;
 
-function mouseover(d){
-	var c = d3.select(this);
+function mouseover(d,i){
+
 //	d3.select(this).style({'stroke-width': 6});
+
+	d3.event.stopPropagation();
+/*
+	popup = L.marker(d.LatLng).addTo(map)
+		.bindPopup(InfoChantier(d, i));
+	popup
+		.openPopup()
+		._popup
+		._contentNode;
+*/
+	var c = d3.select(this);
 	c.style('stroke-width', sizeStroke(d) + 6 + 'px');
 
 
@@ -276,7 +311,8 @@ function mouseover(d){
 }
 
 function mouseout(d){
-//	d3.event.stopPropagation();
+//	map.removeLayer(popup);
+	d3.event.stopPropagation();
 	d3.select(this).style('stroke-width', function (d) {return sizeStroke(d);});
 //	d3.select(this).style({'stroke-width': 2});
 //	if (!permanentMark) {popMark();}
@@ -312,6 +348,9 @@ function setSlider(bydate) {
 //		return e.values[0].datedebut;}));
 	mindate = minDates(byKey.map(function (e){
 		return minDates(e.date);}));
+	mindate.setHours(0);
+	mindate.setMinutes(0);
+	mindate.setSeconds(0);
 	mindate.setTime(mindate.getTime()-3*30*24*60*60*1000); // - 3 mois
 
 
@@ -320,61 +359,95 @@ function setSlider(bydate) {
 		return e.datedebut;}));
 	maxdate.setTime(maxdate.getTime()+3*30*24*60*60*1000); // + 3 mois
 
-	var amplitude = DateDiff(maxdate, mindate)/(60*60*24*1000);//nb of days
+	var amplitude = Math.floor(DateDiff(maxdate, mindate)/(60*60*24*1000));//nb of days
+	
+//	graphByDate(amplitude);
+
 
 	d3.select('#sliderContain') //slider
 		.style('position', 'relative')
-		.style('left', '40px')
-		.style('top', '-40px')
+//		.style('left', '40px')
+//		.style('top', '-40px')
 		.style('opacity', '1')
 		.append('input')
 		.attr("type", 'range')
 		.attr('id', 'slider')
-		.style('width', '500px')
+//		.style('width', '800px')
 		.attr('value', Math.floor(DateDiff(ToDay,mindate)/(60*60*24*1000)))
 		.attr("class", 'slider')
 		.attr('min', 0)
-		.attr('max', Math.floor(amplitude))
+		.attr('max', amplitude)
 		.attr('step', 1)
 		.attr('onchange', function (d) {return "updateDate(+this.value)";})
-		.attr('oninput', function (d) {return "updateDate(+this.value)";});
+		.attr('oninput', function (d) {return "updateDate1(+this.value)";});
 	
 	var sl = +d3.select('.slider').call(d3.helper.tooltip()
 		.attr({class :'tooltip'})
-		.text(function(d, i){ return '<div>' + ToDay + '</div>';})//	feature.call(tip);
+		.text(function(d, i){ return '<div>' + FrenchDate(ToDay) + '</div>';})//	feature.call(tip);
 		);
 
 	map.on("viewreset", update);
 }
-/*
+
+
+
+function graphByDate (amplitude){
+	var j = new Date();
+	data= d3.range(0,amplitude).map(function (i) {
+		j.setTime(mindate.getTime() + i*24*60*60*1000);
+		return [FrenchDate(j), chantiersAtDate(j)
+			.filter(function (e){return (e.intensity(modeTransport)>0);})
+			.length];
+	});
+
+	var widthBars = 10;
+	var height = 100;
+	var margin = {top: 0, right: 0, bottom: -50, left: -40};
+
+	d3.select('.graph').select('svg')
+		.datum(data)
+		.call(columnChart()
+			.width(1000)
+			.height(height)
+			.margin(margin)
+			.x(function(d, i) { return d[0]; })
+			.y(function(d, i) { return d[1]; }));
+
+
+}
+
 d3.json("compress.json", function (chantiers){
 //		throw { name: 'FatalError', message: 'Something went badly wrong' };
 
-	//readChantiers(chantiers);
+	byKey = readCompress(chantiers);
+// ------ set ToDay as the latest known sample
+	ToDay = maxDates(byKey.map(function (e){
+		return maxDates(e.date);}));
+	ToDay.setHours(0);
+	ToDay.setMinutes(0);
+	ToDay.setSeconds(0);
 
-	byKey = chantiers;
-	byKey.forEach(function (e) {
-		e.intensity = function (m) {return this.score[m];};
-		e.duration = function () {
-			var td = ToDay;
-			var tf = new Date(this.datefin);
-			return Normalize(DateDiff(tf,td));};
-		});
+// ------ 
 	setSlider(byKey);
 
 	update();
 
 
 });
-*/
-d3.json("all.json", function (chantiers){
-//		throw { name: 'FatalError', message: 'Something went badly wrong' };
 
-	readChantiers(chantiers);
+var mdrag =0;
+function mdown(){
+	d3.event.stopPropagation();
+	mdrag=1;
+}
 
-	setSlider(byKey);
+function mover(d){
+	d3.event.stopPropagation();
+	if (mdrag===1){
+		updateDate(d);
+	}
+}
 
-	update();
-
-
-});
+function dragslider(d){
+	return d;
+}

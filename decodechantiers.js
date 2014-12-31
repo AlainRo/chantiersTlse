@@ -18,11 +18,15 @@ function DateDiff(d1, d2) {
 
 function Normalize(d) {
 	//Nombre de jours
-	var rv = d/(60*60*24*1000);
+	var rv = d/(60*60*24*1000)+1;
 	if (rv < 0) {return -1;}
 	return rv;
 }
 
+function FrenchDate(d){
+	var m_names = new Array("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre");
+	return d.toLocaleDateString();}
+ 
 
 
 function hasstarted (e) {
@@ -300,6 +304,8 @@ function groupBy(d, key){
 }
 
 //---------------------------------------------
+
+/*
 function readChantiers(data){
 
 	data.forEach(function (e) {
@@ -340,6 +346,25 @@ function readChantiers(data){
 	});
 
 	return byKey;
+
+}
+*/
+function readCompress(data){
+
+	data.forEach(function (e) {
+		e.intensity = function (m) {
+			return this.score[m];};
+		e.duration = function () {
+			var td = ToDay;
+			var tf = new Date(this.datefin);
+			return Normalize(DateDiff(tf,td));};
+		e.hasstarted = function () {
+			var t = new Date(this.date);
+			var d = new Date(this.datedebut);
+			return (DateDiff(t,d) > 0);};
+	});
+
+	return data;
 
 }
 
